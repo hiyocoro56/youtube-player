@@ -3,53 +3,79 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>My Music App</title>
+<title>Nana's Music Player</title>
 
 <style>
+/* 全体の背景 */
 body { margin:0; font-family:sans-serif; background:#111; color:white; }
 
+/* 動画表示エリア */
 #player-area {
   width:100%;
   aspect-ratio:16/9;
   background:black;
   position:relative;
 }
+
+/* スクロールした時に現れるミニプレイヤー */
 #player-area.mini {
   position:fixed;
-  width:160px;
-  height:90px;
-  bottom:10px;
-  right:10px;
+  width:240px;
+  height:135px;
+  bottom:20px;
+  right:20px;
   z-index:1000;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+  border: 2px solid #63AED9;
 }
 
+/* 操作パネル */
 #controls {
   display:flex;
   flex-wrap:wrap;
-  gap:5px;
-  padding:10px;
+  align-items: center;
+  gap:10px;
+  padding:15px;
   background:#222;
   position:sticky;
   top:0;
+  border-bottom: 2px solid #63AED9;
 }
 
 button, select {
-  padding:8px;
+  padding:10px 15px;
   font-size:14px;
+  cursor: pointer;
+  border-radius: 5px;
+  border: none;
+  background: #333;
+  color: white;
 }
 
-#volume {
-  width:100px;
+/* ボタンにマウスを乗せた時 */
+button:hover {
+  background: #444;
 }
+
+/* 再生中の曲を目立たせる色（黄色） */
+.item.active { 
+  background: #FFC547 !important; 
+  color: #000 !important; 
+  font-weight: bold;
+}
+
+#volume { width:100px; accent-color: #63AED9; }
 
 #list { padding:10px; }
 .item {
-  padding:12px;
+  padding:15px;
   background:#333;
-  margin-bottom:6px;
-  border-radius:8px;
+  margin-bottom:8px;
+  border-radius:10px;
+  cursor: pointer;
+  transition: 0.2s;
 }
-.item.active { background:#4dabf7; color:black; }
+.item:hover { background: #444; }
 </style>
 </head>
 
@@ -61,11 +87,10 @@ button, select {
 
 <div id="controls">
   <select id="playlistSelect"></select>
-  <button onclick="prev()">⏮</button>
-  <button onclick="togglePlay()">▶/⏸</button>
-  <button onclick="next()">⏭</button>
-  <button onclick="toggleShuffle()">🔀</button>
-  <button onclick="toggleLoop()">🔁</button>
+  <button onclick="prev()">⏮ 前へ</button>
+  <button onclick="togglePlay()" id="playBtn">▶/⏸ 再生/一時停止</button>
+  <button onclick="next()">⏭ 次へ</button>
+  <button onclick="toggleShuffle()" id="shuffleBtn">🔀 シャッフル: オフ</button>
   🔊 <input type="range" id="volume" min="0" max="100" value="50">
 </div>
 
@@ -78,123 +103,31 @@ let playlists = {};
 let playlist = [];
 let current = 0;
 let player;
-let shuffle=false, loop=false;
+let shuffle = false;
+let isApiReady = false; // YouTubeの準備ができたか
 
-// JSON読み込み（自動）
+// 1. まず曲リスト（JSON）を読み込む
 fetch("playlists.json")
 .then(res => res.json())
 .then(data => {
   playlists = data;
   initSelector();
-  loadPlaylist(Object.keys(playlists)[0]);
+  const firstPlaylistName = Object.keys(playlists)[0];
+  playlist = playlists[firstPlaylistName];
+  
+  // JSONが読み込めたら、YouTubeプレイヤーの作成を試みる
+  tryInitPlayer();
 });
 
-// プレイリスト切替
-function loadPlaylist(name){
-  playlist = playlists[name];
-  current = 0;
-  createList();
-  play(0);
+// YouTubeの準備ができた時に自動で呼ばれる
+function onYouTubeIframeAPIReady() {
+  isApiReady = true;
+  tryInitPlayer();
 }
 
-// セレクタ
-function initSelector(){
-  const sel = document.getElementById("playlistSelect");
-  Object.keys(playlists).forEach(name=>{
-    const opt = document.createElement("option");
-    opt.value=name;
-    opt.textContent=name;
-    sel.appendChild(opt);
-  });
-  sel.onchange=()=>loadPlaylist(sel.value);
-}
-
-// YouTube
-function onYouTubeIframeAPIReady(){
-  player = new YT.Player('player',{
-    width: '100%',
-    height: '100%',
-    videoId: playlist[0].videoId, // ← 最初の動画を指定
-    events:{
-      onReady: () => {
-        play(0); // ← 最初の曲を再生
-      },
-      onStateChange: onState
-    }
-  });
-}
-
-// 再生
-function play(i){
-  current=i;
-  const item=playlist[i];
-  player.loadVideoById({
-    videoId:item.videoId,
-    startSeconds:item.start
-  });
-  updateUI();
-}
-
-// 再生制御
-function togglePlay(){
-  const s=player.getPlayerState();
-  if(s===1) player.pauseVideo();
-  else player.playVideo();
-}
-function next(){
-  if(shuffle) current=Math.floor(Math.random()*playlist.length);
-  else current=(current+1)%playlist.length;
-  play(current);
-}
-function prev(){
-  current=(current-1+playlist.length)%playlist.length;
-  play(current);
-}
-
-// 終了時間管理（ここが重要）
-function onState(){
-  clearInterval(window._timer);
-  window._timer=setInterval(()=>{
-    const item=playlist[current];
-    if(!item.end) return;
-    const t=player.getCurrentTime();
-    if(t>=item.end){
-      if(loop) play(current);
-      else next();
-    }
-  },500);
-}
-
-// UI
-function createList(){
-  const list=document.getElementById("list");
-  list.innerHTML="";
-  playlist.forEach((item,i)=>{
-    const div=document.createElement("div");
-    div.className="item";
-    div.textContent=item.title;
-    div.onclick=()=>play(i);
-    list.appendChild(div);
-  });
-}
-function updateUI(){
-  document.querySelectorAll(".item").forEach((el,i)=>{
-    el.classList.toggle("active",i===current);
-  });
-}
-
-// 音量
-document.getElementById("volume").oninput=e=>{
-  player.setVolume(e.target.value);
-};
-
-// ミニプレイヤー
-window.addEventListener("scroll",()=>{
-  const rect=document.getElementById("player-area").getBoundingClientRect();
-  if(rect.bottom<0) document.getElementById("player-area").classList.add("mini");
-  else document.getElementById("player-area").classList.remove("mini");
-});
-</script>
-
-</body>
-</html>
+// データとYouTube、両方の準備ができたらプレイヤーを作る
+function tryInitPlayer() {
+  if (isApiReady && playlist.length > 0 && !player) {
+    player = new YT.Player('player', {
+      width: '100%',
+      height: '10
