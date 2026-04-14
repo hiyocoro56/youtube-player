@@ -112,7 +112,15 @@ function initSelector(){
 // YouTube
 function onYouTubeIframeAPIReady(){
   player = new YT.Player('player',{
-    events:{ onStateChange:onState }
+    width: '100%',
+    height: '100%',
+    videoId: playlist[0].videoId, // ← 最初の動画を指定
+    events:{
+      onReady: () => {
+        play(0); // ← 最初の曲を再生
+      },
+      onStateChange: onState
+    }
   });
 }
 
