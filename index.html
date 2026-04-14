@@ -6,7 +6,7 @@
 <title>Nana's Music Player</title>
 
 <style>
-/* 全体の背景（高級感のあるダークグラデーション） */
+/* 全体の背景 */
 body { 
   margin: 0; 
   font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif; 
@@ -15,7 +15,6 @@ body {
   min-height: 100vh;
 }
 
-/* アプリ全体の枠組み */
 #app-container {
   max-width: 700px;
   margin: 0 auto;
@@ -42,10 +41,7 @@ body {
   margin-bottom: 20px;
 }
 
-#player-area {
-  width: 100%;
-  height: 100%;
-}
+#player-area { width: 100%; height: 100%; }
 
 /* 操作パネル */
 #controls {
@@ -83,6 +79,7 @@ select {
   outline: none;
   cursor: pointer;
 }
+select option { background: #1e293b; color: #fff; }
 
 button {
   padding: 12px 20px;
@@ -100,12 +97,8 @@ button:hover {
   box-shadow: 0 0 15px rgba(99, 174, 217, 0.5);
 }
 
-.volume-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-#volume { width: 100px; accent-color: #63AED9; }
+.volume-wrapper { display: flex; align-items: center; gap: 10px; }
+#volume { width: 100px; accent-color: #63AED9; cursor: pointer; }
 
 /* 曲リスト */
 #list { display: flex; flex-direction: column; gap: 10px; }
@@ -127,17 +120,15 @@ button:hover {
   border-left: 4px solid #FFC547;
   color: #FFC547; 
   font-weight: bold;
+  box-shadow: 0 4px 15px rgba(255, 197, 71, 0.1);
 }
 
-.track-number { font-size: 0.9rem; opacity: 0.5; margin-right: 15px; }
+.track-number { font-size: 0.9rem; opacity: 0.5; margin-right: 15px; font-family: monospace; }
 
-.error-msg {
-  background: rgba(255, 0, 0, 0.1);
-  border: 1px solid #ff4d4d;
-  color: #ff4d4d;
-  padding: 20px;
-  border-radius: 10px;
-}
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #63AED9; }
 </style>
 </head>
 
@@ -172,7 +163,6 @@ button:hover {
 <script src="https://www.youtube.com/iframe_api"></script>
 
 <script>
-// ★ 曲データ ★
 const myMusicData = {
   "少年漫画歌枠 2026/03/17": [
     { "title": "DAN DAN 心魅かれてく", "videoId": "b-P-71jE-PI", "start": 120, "end": 500 },
@@ -226,34 +216,32 @@ let player;
 let shuffle = false;
 let isApiReady = false; 
 
-function initApp() {
-  const firstPlaylistName = Object.keys(myMusicData)[0];
-  playlist = myMusicData[firstPlaylistName];
-  initSelector();
-  createList(); 
-}
-
+// ★ 渋滞解消：YouTubeの準備完了をキャッチ ★
 function onYouTubeIframeAPIReady() {
   isApiReady = true;
   tryInitPlayer();
 }
 
+// ★ リストの準備 ★
+function initApp() {
+  const firstPlaylistName = Object.keys(myMusicData)[0];
+  playlist = myMusicData[firstPlaylistName];
+  initSelector();
+  createList(); 
+  tryInitPlayer(); // リストができたらプレイヤー作成を試みる
+}
+
+// ★ プレイヤー作成（両方揃ったら動く） ★
 function tryInitPlayer() {
   if (isApiReady && playlist.length > 0 && !player) {
     player = new YT.Player('player', {
       width: '100%',
       height: '100%',
       videoId: playlist[0].videoId,
-      // ★ 原因だったコード（originやnocookie）を削除し、最も安定する設定に戻しました ★
-      playerVars: { 
-        'playsinline': 1, 
-        'rel': 0,
-        'enablejsapi': 1 
-      },
+      playerVars: { 'playsinline': 1, 'rel': 0 },
       events: {
         'onReady': (event) => {
           event.target.setVolume(50);
-          current = 0;
           player.cueVideoById({
             videoId: playlist[0].videoId,
             startSeconds: playlist[0].start
@@ -279,7 +267,13 @@ function initSelector() {
     playlist = myMusicData[sel.value];
     current = 0;
     createList();
-    loadTrack(0);
+    if(player && player.loadVideoById){
+        player.loadVideoById({
+          videoId: playlist[0].videoId,
+          startSeconds: playlist[0].start
+        });
+    }
+    updateUI();
   };
 }
 
@@ -291,8 +285,6 @@ function loadTrack(i) {
         videoId: item.videoId,
         startSeconds: item.start
       });
-      // ★ リストをクリックしたら強制的に再生スタートさせる処理を追加 ★
-      player.playVideo();
   }
   updateUI();
 }
@@ -369,13 +361,8 @@ document.getElementById("volume").oninput = e => {
   if(player) player.setVolume(e.target.value);
 };
 
-window.onload = function() {
-  try {
-    initApp();
-  } catch (error) {
-    console.error("Initialization Error:", error);
-  }
-};
+// 起動！
+initApp();
 </script>
 </body>
 </html>
