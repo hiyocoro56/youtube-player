@@ -96,27 +96,35 @@ button:hover { background: #444; }
 <script src="https://www.youtube.com/iframe_api"></script>
 
 <script>
-let playlists = {};
+// ★ ここに曲のリストを直接埋め込みました ★
+const myMusicData = {
+  "少年漫画歌枠 2026/03/17": [
+    { "title": "DAN DAN 心魅かれてく", "videoId": "b-P-71jE-PI", "start": 120, "end": 500 },
+    { "title": "あなただけ見つめてる", "videoId": "b-P-71jE-PI", "start": 512, "end": 980 },
+    { "title": "Sign", "videoId": "b-P-71jE-PI", "start": 998, "end": 1400 },
+    { "title": "chAngE", "videoId": "b-P-71jE-PI", "start": 1426, "end": 1850 },
+    { "title": "FLY HIGH!!", "videoId": "b-P-71jE-PI", "start": 1886, "end": 2250 },
+    { "title": "カーテンコール", "videoId": "b-P-71jE-PI", "start": 2283, "end": 2650 },
+    { "title": "青のすみか", "videoId": "b-P-71jE-PI", "start": 2709, "end": 3000 },
+    { "title": "葛飾ラプソディー", "videoId": "b-P-71jE-PI", "start": 3076, "end": 3350 },
+    { "title": "サムライハート (Some Like It Hot!!)", "videoId": "b-P-71jE-PI", "start": 3378, "end": 3700 },
+    { "title": "ウィーアー!", "videoId": "b-P-71jE-PI", "start": 3739, "end": 4100 }
+  ]
+};
+
 let playlist = [];
 let current = 0;
 let player;
 let shuffle = false;
 let isApiReady = false; 
 
-// 1. まず曲リスト（JSON）を読み込む
-fetch("playlists.json")
-.then(res => res.json())
-.then(data => {
-  playlists = data;
+// ページが開かれたらすぐにリストをセットする
+function initApp() {
+  const firstPlaylistName = Object.keys(myMusicData)[0];
+  playlist = myMusicData[firstPlaylistName];
   initSelector();
-  const firstPlaylistName = Object.keys(playlists)[0];
-  playlist = playlists[firstPlaylistName];
-  tryInitPlayer();
-})
-.catch(error => {
-  console.error("リストの読み込みに失敗しました:", error);
-  document.getElementById("list").innerHTML = "<p style='color:red;'>※リストデータ（JSON）の読み込みに失敗しました。カンマのズレなどがないか確認してください。</p>";
-});
+  createList(); // リストの表示を確定させる
+}
 
 // YouTubeの準備ができた時に自動で呼ばれる
 function onYouTubeIframeAPIReady() {
@@ -124,11 +132,11 @@ function onYouTubeIframeAPIReady() {
   tryInitPlayer();
 }
 
-// データとYouTube、両方の準備ができたらプレイヤーを作る
+// プレイヤーを作る
 function tryInitPlayer() {
   if (isApiReady && playlist.length > 0 && !player) {
     player = new YT.Player('player', {
-      host: 'https://www.youtube-nocookie.com', // ← Cookieエラー対策
+      host: 'https://www.youtube-nocookie.com',
       width: '100%',
       height: '100%',
       videoId: playlist[0].videoId,
@@ -139,9 +147,8 @@ function tryInitPlayer() {
       events: {
         'onReady': (event) => {
           event.target.setVolume(50);
-          createList();
           
-          // 自動再生ブロック対策：最初はサムネイルを表示して待機する
+          // 自動再生ブロック対策：最初はサムネイルを表示して待機
           current = 0;
           player.cueVideoById({
             videoId: playlist[0].videoId,
@@ -157,18 +164,17 @@ function tryInitPlayer() {
 
 function initSelector() {
   const sel = document.getElementById("playlistSelect");
-  sel.innerHTML = ""; // 初期化
-  Object.keys(playlists).forEach(name => {
+  sel.innerHTML = ""; 
+  Object.keys(myMusicData).forEach(name => {
     const opt = document.createElement("option");
     opt.value = name;
     opt.textContent = name;
     sel.appendChild(opt);
   });
   sel.onchange = () => {
-    playlist = playlists[sel.value];
+    playlist = myMusicData[sel.value];
     current = 0;
     createList();
-    // リストが切り替わった時はすぐに再生開始
     if(player && player.loadVideoById){
         player.loadVideoById({
           videoId: playlist[0].videoId,
@@ -248,4 +254,23 @@ function createList() {
 
 function updateUI() {
   const items = document.querySelectorAll(".item");
-  items.forEach((el, i
+  items.forEach((el, i) => {
+    el.classList.toggle("active", i === current);
+  });
+}
+
+document.getElementById("volume").oninput = e => {
+  if(player) player.setVolume(e.target.value);
+};
+
+window.addEventListener("scroll", () => {
+  const area = document.getElementById("player-area");
+  if (window.scrollY > 300) area.classList.add("mini");
+  else area.classList.remove("mini");
+});
+
+// 起動！
+initApp();
+</script>
+</body>
+</html>
