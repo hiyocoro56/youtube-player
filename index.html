@@ -6,85 +6,191 @@
 <title>Nana's Music Player</title>
 
 <style>
-/* 全体の背景 */
-body { margin:0; font-family:sans-serif; background:#111; color:white; }
+/* 1. 全体の背景（高級感のあるダークグラデーション） */
+body { 
+  margin: 0; 
+  font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif; 
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  color: #f8fafc; 
+  min-height: 100vh;
+}
 
-/* 動画表示エリア */
-#player-area {
+/* 2. アプリ全体の枠組み（中央寄せでスッキリ見せる） */
+#app-container {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* タイトルロゴ風 */
+.app-title {
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #63AED9;
+  margin-bottom: 20px;
+  letter-spacing: 2px;
+}
+
+/* 3. 動画表示エリア（角丸にして柔らかく） */
+#player-wrapper {
   width: 100%;
   aspect-ratio: 16/9;
-  background: black;
-  position: relative;
+  background: #000;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  margin-bottom: 20px;
 }
 
-/* 操作パネル */
+/* 4. 操作パネル（ガラスのような半透明デザイン） */
 #controls {
-  display:flex;
-  flex-wrap:wrap;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  margin-bottom: 20px;
+  position: sticky;
+  top: 10px;
+  z-index: 100;
+}
+
+.controls-row {
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap:10px;
-  padding:15px;
-  background:#222;
-  position:sticky;
-  top:0;
-  border-bottom: 2px solid #63AED9;
-  z-index: 500; /* スクロールしてもリストより上に表示させる */
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
-button, select {
-  padding:10px 15px;
-  font-size:14px;
-  cursor: pointer;
-  border-radius: 5px;
-  border: none;
-  background: #333;
-  color: white;
-}
-
-button:hover { background: #444; }
-
-/* 再生中の曲を目立たせる色（黄色） */
-.item.active { 
-  background: #FFC547 !important; 
-  color: #000 !important; 
+/* プルダウンメニューのお洒落化 */
+select {
+  flex-grow: 1;
+  padding: 12px 15px;
+  font-size: 15px;
   font-weight: bold;
-}
-
-#volume { width:100px; accent-color: #63AED9; }
-
-#list { padding:10px; }
-.item {
-  padding:15px;
-  background:#333;
-  margin-bottom:8px;
-  border-radius:10px;
+  color: #fff;
+  background: rgba(99, 174, 217, 0.15);
+  border: 1px solid rgba(99, 174, 217, 0.3);
+  border-radius: 8px;
+  outline: none;
   cursor: pointer;
-  transition: 0.2s;
 }
-.item:hover { background: #444; }
+select option { background: #1e293b; color: #fff; }
+
+/* ボタンのお洒落化 */
+button {
+  padding: 12px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 50px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  transition: all 0.3s ease;
+}
+button:hover { 
+  background: #63AED9; 
+  color: #000;
+  box-shadow: 0 0 15px rgba(99, 174, 217, 0.5);
+  border-color: transparent;
+}
+
+/* 5. 音量スライダー */
+.volume-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 18px;
+}
+#volume { 
+  width: 100px; 
+  accent-color: #63AED9; /* 水色スライダー */
+  cursor: pointer;
+}
+
+/* 6. 曲リストのお洒落化 */
+#list { 
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 12px;
+  cursor: pointer;
+  border-left: 4px solid transparent; /* 左側のライン用 */
+  transition: all 0.3s ease;
+}
+.item:hover { 
+  background: rgba(255, 255, 255, 0.06); 
+  transform: translateX(5px); /* マウスを乗せると少し右に動く */
+}
+
+/* ★ 再生中の曲のハイライト（黄色） ★ */
+.item.active { 
+  background: rgba(255, 197, 71, 0.1);
+  border-left: 4px solid #FFC547;
+  color: #FFC547; 
+  font-weight: bold;
+  box-shadow: 0 4px 15px rgba(255, 197, 71, 0.1);
+}
+
+.track-number {
+  font-size: 0.9rem;
+  opacity: 0.5;
+  margin-right: 15px;
+  font-family: monospace;
+}
+
+/* スクロールバーのお洒落化（PC用） */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #63AED9; }
 </style>
 </head>
 
 <body>
 
-<div id="player-area">
-  <div id="player"></div>
-</div>
+<div id="app-container">
+  <div class="app-title">Nana's Music Player</div>
 
-<div id="controls">
-  <select id="playlistSelect"></select>
-  <button onclick="prev()">⏮ 前へ</button>
-  <button onclick="togglePlay()" id="playBtn">▶/⏸ 再生/一時停止</button>
-  <button onclick="next()">⏭ 次へ</button>
-  <button onclick="toggleShuffle()" id="shuffleBtn">🔀 シャッフル: オフ</button>
-  🔊 <input type="range" id="volume" min="0" max="100" value="50">
-</div>
+  <div id="player-wrapper">
+    <div id="player"></div>
+  </div>
 
-<div id="list"></div>
+  <div id="controls">
+    <select id="playlistSelect"></select>
+    
+    <div class="controls-row">
+      <div>
+        <button onclick="prev()">⏮</button>
+        <button onclick="togglePlay()" id="playBtn">▶/⏸</button>
+        <button onclick="next()">⏭</button>
+        <button onclick="toggleShuffle()" id="shuffleBtn" style="font-size:13px;">🔀 オフ</button>
+      </div>
+      <div class="volume-wrapper">
+        🔊 <input type="range" id="volume" min="0" max="100" value="50">
+      </div>
+    </div>
+  </div>
+
+  <div id="list"></div>
+</div>
 
 <script src="https://www.youtube.com/iframe_api"></script>
 
 <script>
+// ★ 曲のデータ（ここにどんどん追加できます） ★
 const myMusicData = {
   "少年漫画歌枠 2026/03/17": [
     { "title": "DAN DAN 心魅かれてく", "videoId": "b-P-71jE-PI", "start": 120, "end": 500 },
@@ -157,10 +263,7 @@ function tryInitPlayer() {
       width: '100%',
       height: '100%',
       videoId: playlist[0].videoId,
-      playerVars: {
-        'playsinline': 1,
-        'rel': 0
-      },
+      playerVars: { 'playsinline': 1, 'rel': 0 },
       events: {
         'onReady': (event) => {
           event.target.setVolume(50);
@@ -220,12 +323,7 @@ function togglePlay() {
 }
 
 function next() {
-  let nextIdx;
-  if (shuffle) {
-    nextIdx = Math.floor(Math.random() * playlist.length);
-  } else {
-    nextIdx = (current + 1) % playlist.length;
-  }
+  let nextIdx = shuffle ? Math.floor(Math.random() * playlist.length) : (current + 1) % playlist.length;
   loadTrack(nextIdx);
 }
 
@@ -236,7 +334,8 @@ function prev() {
 
 function toggleShuffle() {
   shuffle = !shuffle;
-  document.getElementById("shuffleBtn").textContent = shuffle ? "🔀 シャッフル: オン" : "🔀 シャッフル: オフ";
+  document.getElementById("shuffleBtn").textContent = shuffle ? "🔀 オン" : "🔀 オフ";
+  document.getElementById("shuffleBtn").style.color = shuffle ? "#FFC547" : "#fff";
 }
 
 function onPlayerStateChange(event) {
@@ -249,37 +348,3 @@ function onPlayerStateChange(event) {
         next();
       }
     }, 1000);
-  } else {
-    clearInterval(window._timer);
-  }
-}
-
-function createList() {
-  const list = document.getElementById("list");
-  list.innerHTML = "";
-  playlist.forEach((item, i) => {
-    const div = document.createElement("div");
-    div.className = "item";
-    div.textContent = (i + 1) + ". " + item.title;
-    div.onclick = () => loadTrack(i);
-    list.appendChild(div);
-  });
-  updateUI();
-}
-
-function updateUI() {
-  const items = document.querySelectorAll(".item");
-  items.forEach((el, i) => {
-    el.classList.toggle("active", i === current);
-  });
-}
-
-document.getElementById("volume").oninput = e => {
-  if(player) player.setVolume(e.target.value);
-};
-
-// 起動！
-initApp();
-</script>
-</body>
-</html>
