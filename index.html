@@ -52,10 +52,7 @@ button, select {
   color: white;
 }
 
-/* ボタンにマウスを乗せた時 */
-button:hover {
-  background: #444;
-}
+button:hover { background: #444; }
 
 /* 再生中の曲を目立たせる色（黄色） */
 .item.active { 
@@ -104,7 +101,7 @@ let playlist = [];
 let current = 0;
 let player;
 let shuffle = false;
-let isApiReady = false; // YouTubeの準備ができたか
+let isApiReady = false; 
 
 // 1. まず曲リスト（JSON）を読み込む
 fetch("playlists.json")
@@ -114,9 +111,11 @@ fetch("playlists.json")
   initSelector();
   const firstPlaylistName = Object.keys(playlists)[0];
   playlist = playlists[firstPlaylistName];
-  
-  // JSONが読み込めたら、YouTubeプレイヤーの作成を試みる
   tryInitPlayer();
+})
+.catch(error => {
+  console.error("リストの読み込みに失敗しました:", error);
+  document.getElementById("list").innerHTML = "<p style='color:red;'>※リストデータ（JSON）の読み込みに失敗しました。カンマのズレなどがないか確認してください。</p>";
 });
 
 // YouTubeの準備ができた時に自動で呼ばれる
@@ -129,5 +128,124 @@ function onYouTubeIframeAPIReady() {
 function tryInitPlayer() {
   if (isApiReady && playlist.length > 0 && !player) {
     player = new YT.Player('player', {
+      host: 'https://www.youtube-nocookie.com', // ← Cookieエラー対策
       width: '100%',
-      height: '10
+      height: '100%',
+      videoId: playlist[0].videoId,
+      playerVars: {
+        'playsinline': 1,
+        'rel': 0
+      },
+      events: {
+        'onReady': (event) => {
+          event.target.setVolume(50);
+          createList();
+          
+          // 自動再生ブロック対策：最初はサムネイルを表示して待機する
+          current = 0;
+          player.cueVideoById({
+            videoId: playlist[0].videoId,
+            startSeconds: playlist[0].start
+          });
+          updateUI();
+        },
+        'onStateChange': onPlayerStateChange
+      }
+    });
+  }
+}
+
+function initSelector() {
+  const sel = document.getElementById("playlistSelect");
+  sel.innerHTML = ""; // 初期化
+  Object.keys(playlists).forEach(name => {
+    const opt = document.createElement("option");
+    opt.value = name;
+    opt.textContent = name;
+    sel.appendChild(opt);
+  });
+  sel.onchange = () => {
+    playlist = playlists[sel.value];
+    current = 0;
+    createList();
+    // リストが切り替わった時はすぐに再生開始
+    if(player && player.loadVideoById){
+        player.loadVideoById({
+          videoId: playlist[0].videoId,
+          startSeconds: playlist[0].start
+        });
+    }
+    updateUI();
+  };
+}
+
+function loadTrack(i) {
+  current = i;
+  const item = playlist[i];
+  if(player && player.loadVideoById){
+      player.loadVideoById({
+        videoId: item.videoId,
+        startSeconds: item.start
+      });
+  }
+  updateUI();
+}
+
+function togglePlay() {
+  if(!player) return;
+  const s = player.getPlayerState();
+  if (s === 1) player.pauseVideo();
+  else player.playVideo();
+}
+
+function next() {
+  let nextIdx;
+  if (shuffle) {
+    nextIdx = Math.floor(Math.random() * playlist.length);
+  } else {
+    nextIdx = (current + 1) % playlist.length;
+  }
+  loadTrack(nextIdx);
+}
+
+function prev() {
+  let prevIdx = (current - 1 + playlist.length) % playlist.length;
+  loadTrack(prevIdx);
+}
+
+function toggleShuffle() {
+  shuffle = !shuffle;
+  document.getElementById("shuffleBtn").textContent = shuffle ? "🔀 シャッフル: オン" : "🔀 シャッフル: オフ";
+}
+
+function onPlayerStateChange(event) {
+  if (event.data === YT.PlayerState.PLAYING) {
+    clearInterval(window._timer);
+    window._timer = setInterval(() => {
+      const item = playlist[current];
+      const now = player.getCurrentTime();
+      if (item.end && now >= item.end) {
+        next();
+      }
+    }, 1000);
+  } else {
+    clearInterval(window._timer);
+  }
+}
+
+function createList() {
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+  playlist.forEach((item, i) => {
+    const div = document.createElement("div");
+    div.className = "item";
+    div.textContent = (i + 1) + ". " + item.title;
+    div.onclick = () => loadTrack(i);
+    list.appendChild(div);
+  });
+  updateUI();
+}
+
+function updateUI() {
+  const items = document.querySelectorAll(".item");
+  items.forEach((el, i
