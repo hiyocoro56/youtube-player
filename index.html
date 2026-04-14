@@ -9,12 +9,18 @@
 /* 全体の背景 */
 body { margin:0; font-family:sans-serif; background:#111; color:white; }
 
+/* ★ここが修正ポイント！動画がミニ化しても空間を保つ「空箱」★ */
+#player-placeholder {
+  width: 100%;
+  aspect-ratio: 16/9;
+  background: black;
+}
+
 /* 動画表示エリア */
 #player-area {
-  width:100%;
-  aspect-ratio:16/9;
-  background:black;
-  position:relative;
+  width: 100%;
+  height: 100%;
+  position: relative;
 }
 
 /* スクロールした時に現れるミニプレイヤー */
@@ -40,6 +46,7 @@ body { margin:0; font-family:sans-serif; background:#111; color:white; }
   position:sticky;
   top:0;
   border-bottom: 2px solid #63AED9;
+  z-index: 500; /* スクロールしてもリストより上に表示させる */
 }
 
 button, select {
@@ -78,8 +85,10 @@ button:hover { background: #444; }
 
 <body>
 
-<div id="player-area">
-  <div id="player"></div>
+<div id="player-placeholder">
+  <div id="player-area">
+    <div id="player"></div>
+  </div>
 </div>
 
 <div id="controls">
@@ -96,7 +105,6 @@ button:hover { background: #444; }
 <script src="https://www.youtube.com/iframe_api"></script>
 
 <script>
-// ★ ここに曲のリストを直接埋め込みました ★
 const myMusicData = {
   "少年漫画歌枠 2026/03/17": [
     { "title": "DAN DAN 心魅かれてく", "videoId": "b-P-71jE-PI", "start": 120, "end": 500 },
@@ -118,21 +126,18 @@ let player;
 let shuffle = false;
 let isApiReady = false; 
 
-// ページが開かれたらすぐにリストをセットする
 function initApp() {
   const firstPlaylistName = Object.keys(myMusicData)[0];
   playlist = myMusicData[firstPlaylistName];
   initSelector();
-  createList(); // リストの表示を確定させる
+  createList(); 
 }
 
-// YouTubeの準備ができた時に自動で呼ばれる
 function onYouTubeIframeAPIReady() {
   isApiReady = true;
   tryInitPlayer();
 }
 
-// プレイヤーを作る
 function tryInitPlayer() {
   if (isApiReady && playlist.length > 0 && !player) {
     player = new YT.Player('player', {
@@ -147,8 +152,6 @@ function tryInitPlayer() {
       events: {
         'onReady': (event) => {
           event.target.setVolume(50);
-          
-          // 自動再生ブロック対策：最初はサムネイルを表示して待機
           current = 0;
           player.cueVideoById({
             videoId: playlist[0].videoId,
@@ -265,11 +268,11 @@ document.getElementById("volume").oninput = e => {
 
 window.addEventListener("scroll", () => {
   const area = document.getElementById("player-area");
+  // 300pxスクロールしたら右下に固定する
   if (window.scrollY > 300) area.classList.add("mini");
   else area.classList.remove("mini");
 });
 
-// 起動！
 initApp();
 </script>
 </body>
