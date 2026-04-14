@@ -6,7 +6,7 @@
 <title>Nana's Music Player</title>
 
 <style>
-/* 1. 全体の背景（高級感のあるダークグラデーション） */
+/* 全体の背景（高級感のあるダークグラデーション） */
 body { 
   margin: 0; 
   font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif; 
@@ -15,7 +15,7 @@ body {
   min-height: 100vh;
 }
 
-/* 2. アプリ全体の枠組み */
+/* アプリ全体の枠組み */
 #app-container {
   max-width: 700px;
   margin: 0 auto;
@@ -31,7 +31,7 @@ body {
   letter-spacing: 2px;
 }
 
-/* 3. 動画表示エリア（プレースホルダーを追加してガタつき防止） */
+/* 動画表示エリア */
 #player-placeholder {
   width: 100%;
   aspect-ratio: 16/9;
@@ -47,7 +47,7 @@ body {
   height: 100%;
 }
 
-/* 4. 操作パネル */
+/* 操作パネル */
 #controls {
   display: flex;
   flex-direction: column;
@@ -107,7 +107,7 @@ button:hover {
 }
 #volume { width: 100px; accent-color: #63AED9; }
 
-/* 5. 曲リスト */
+/* 曲リスト */
 #list { display: flex; flex-direction: column; gap: 10px; }
 
 .item {
@@ -241,25 +241,26 @@ function onYouTubeIframeAPIReady() {
 function tryInitPlayer() {
   if (isApiReady && playlist.length > 0 && !player) {
     player = new YT.Player('player', {
-      host: 'https://www.youtube-nocookie.com',
       width: '100%',
       height: '100%',
       videoId: playlist[0].videoId,
+      // ★ 原因だったコード（originやnocookie）を削除し、最も安定する設定に戻しました ★
       playerVars: { 
         'playsinline': 1, 
         'rel': 0,
-        'origin': location.origin
+        'enablejsapi': 1 
       },
       events: {
         'onReady': (event) => {
           event.target.setVolume(50);
+          current = 0;
+          player.cueVideoById({
+            videoId: playlist[0].videoId,
+            startSeconds: playlist[0].start
+          });
           updateUI();
         },
-        'onStateChange': onPlayerStateChange,
-        'onError': (e) => {
-           console.error("Player Error:", e);
-           document.getElementById("list").innerHTML = `<div class="error-msg">動画を読み込めませんでした。ブラウザの設定や広告ブロックを確認してください。</div>` + document.getElementById("list").innerHTML;
-        }
+        'onStateChange': onPlayerStateChange
       }
     });
   }
@@ -290,6 +291,8 @@ function loadTrack(i) {
         videoId: item.videoId,
         startSeconds: item.start
       });
+      // ★ リストをクリックしたら強制的に再生スタートさせる処理を追加 ★
+      player.playVideo();
   }
   updateUI();
 }
@@ -366,7 +369,6 @@ document.getElementById("volume").oninput = e => {
   if(player) player.setVolume(e.target.value);
 };
 
-// 安全起動
 window.onload = function() {
   try {
     initApp();
