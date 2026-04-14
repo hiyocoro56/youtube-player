@@ -6,7 +6,7 @@
 <title>Nana's Music Player</title>
 
 <style>
-/* 全体の背景 */
+/* 1. 全体の背景（高級感のあるダークグラデーション） */
 body { 
   margin: 0; 
   font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif; 
@@ -15,6 +15,7 @@ body {
   min-height: 100vh;
 }
 
+/* 2. アプリ全体の枠組み */
 #app-container {
   max-width: 700px;
   margin: 0 auto;
@@ -30,7 +31,7 @@ body {
   letter-spacing: 2px;
 }
 
-/* 動画表示エリア */
+/* 3. 動画表示エリア */
 #player-placeholder {
   width: 100%;
   aspect-ratio: 16/9;
@@ -43,7 +44,7 @@ body {
 
 #player-area { width: 100%; height: 100%; }
 
-/* 操作パネル */
+/* 4. 操作パネル（ガラスのような透明感） */
 #controls {
   display: flex;
   flex-direction: column;
@@ -64,7 +65,7 @@ body {
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 15px;
 }
 
 select {
@@ -81,20 +82,51 @@ select {
 }
 select option { background: #1e293b; color: #fff; }
 
-button {
-  padding: 12px 20px;
-  font-size: 16px;
-  cursor: pointer;
-  border-radius: 50px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+/* お洒落なSVGアイコンボタン */
+.player-buttons {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.player-buttons button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid rgba(99, 174, 217, 0.2);
   background: rgba(255, 255, 255, 0.05);
   color: #fff;
+  cursor: pointer;
   transition: all 0.3s ease;
 }
-button:hover { 
+
+.player-buttons button:hover { 
   background: #63AED9; 
   color: #000;
-  box-shadow: 0 0 15px rgba(99, 174, 217, 0.5);
+  box-shadow: 0 0 15px rgba(99, 174, 217, 0.4);
+  transform: scale(1.05);
+}
+
+.player-buttons svg {
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
+}
+
+#shuffleBtn {
+  width: auto;
+  padding: 0 16px;
+  border-radius: 23px;
+  gap: 6px;
+}
+
+#shuffleText {
+  font-size: 13px;
+  font-weight: bold;
 }
 
 .volume-wrapper { display: flex; align-items: center; gap: 10px; }
@@ -115,6 +147,7 @@ button:hover {
 }
 .item:hover { background: rgba(255, 255, 255, 0.06); transform: translateX(5px); }
 
+/* アクティブ（再生中）の曲は黄色でハイライト */
 .item.active { 
   background: rgba(255, 197, 71, 0.1);
   border-left: 4px solid #FFC547;
@@ -129,6 +162,14 @@ button:hover {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
 ::-webkit-scrollbar-thumb:hover { background: #63AED9; }
+
+.error-msg {
+  background: rgba(255, 0, 0, 0.1);
+  border: 1px solid #ff4d4d;
+  color: #ff4d4d;
+  padding: 20px;
+  border-radius: 10px;
+}
 </style>
 </head>
 
@@ -145,11 +186,21 @@ button:hover {
     <select id="playlistSelect"></select>
     
     <div class="controls-row">
-      <div>
-        <button onclick="prev()">⏮</button>
-        <button onclick="togglePlay()" id="playBtn">▶/⏸</button>
-        <button onclick="next()">⏭</button>
-        <button onclick="toggleShuffle()" id="shuffleBtn" style="font-size:13px;">🔀 オフ</button>
+      <div class="player-buttons">
+        <button onclick="prev()" title="前へ">
+          <svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+        </button>
+        <button onclick="togglePlay()" id="playBtn" title="再生/一時停止">
+          <svg id="icon-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          <svg id="icon-pause" viewBox="0 0 24 24" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+        </button>
+        <button onclick="next()" title="次へ">
+          <svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+        </button>
+        <button onclick="toggleShuffle()" id="shuffleBtn" title="シャッフル">
+          <svg viewBox="0 0 24 24"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/></svg>
+          <span id="shuffleText">オフ</span>
+        </button>
       </div>
       <div class="volume-wrapper">
         🔊 <input type="range" id="volume" min="0" max="100" value="50">
@@ -163,6 +214,7 @@ button:hover {
 <script src="https://www.youtube.com/iframe_api"></script>
 
 <script>
+// ★ 曲データ（新しく追加した配信分） ★
 const myMusicData = {
   "少年漫画歌枠 2026/03/17": [
     { "title": "DAN DAN 心魅かれてく", "videoId": "b-P-71jE-PI", "start": 120, "end": 500 },
@@ -207,6 +259,79 @@ const myMusicData = {
     { "title": "世界の約束", "videoId": "A2SdplCJEeA", "start": 10582, "end": 10861 },
     { "title": "プラチナ", "videoId": "A2SdplCJEeA", "start": 10861, "end": 11322 },
     { "title": "い", "videoId": "A2SdplCJEeA", "start": 11322, "end": 11635 }
+  ],
+  "涙が溢れるような泣ける曲歌枠": [
+    { "title": "For Fruits Basket", "videoId": "b0RQ4FENW60", "start": 492, "end": 767 },
+    { "title": "行かないで", "videoId": "b0RQ4FENW60", "start": 1036, "end": 1295 },
+    { "title": "アイネクライネ", "videoId": "b0RQ4FENW60", "start": 1416, "end": 1729 },
+    { "title": "アイコトバ", "videoId": "b0RQ4FENW60", "start": 1856, "end": 2151 },
+    { "title": "ハロ／ハワユ", "videoId": "b0RQ4FENW60", "start": 2336, "end": 2637 },
+    { "title": "Sincerely", "videoId": "b0RQ4FENW60", "start": 2774, "end": 3083 },
+    { "title": "One more time, One more chance", "videoId": "b0RQ4FENW60", "start": 3227, "end": 3570 },
+    { "title": "たしかなこと", "videoId": "b0RQ4FENW60", "start": 3725, "end": 4053 },
+    { "title": "Viator", "videoId": "b0RQ4FENW60", "start": 4188, "end": 4463 },
+    { "title": "君の夢", "videoId": "b0RQ4FENW60", "start": 4667, "end": 4886 },
+    { "title": "一番の宝物", "videoId": "b0RQ4FENW60", "start": 5069, "end": 5370 }
+  ],
+  "デビュー1.5周年記念歌枠": [
+    { "title": "白い雪のプリンセスは", "videoId": "A9vtPXPPuNw", "start": 323, "end": 580 },
+    { "title": "クリスマス・イブ", "videoId": "A9vtPXPPuNw", "start": 809, "end": 1032 },
+    { "title": "ふゆびより", "videoId": "A9vtPXPPuNw", "start": 1164, "end": 1445 },
+    { "title": "好き！雪！本気マジック", "videoId": "A9vtPXPPuNw", "start": 1650, "end": 1844 },
+    { "title": "夜撫でるメノウ", "videoId": "A9vtPXPPuNw", "start": 1992, "end": 2286 },
+    { "title": "ベテルギウス", "videoId": "A9vtPXPPuNw", "start": 2510, "end": 2745 },
+    { "title": "粉雪", "videoId": "A9vtPXPPuNw", "start": 2874, "end": 3173 },
+    { "title": "深愛", "videoId": "A9vtPXPPuNw", "start": 3368, "end": 3638 },
+    { "title": "115万キロのフィルム", "videoId": "A9vtPXPPuNw", "start": 3798, "end": 4135 },
+    { "title": "心絵", "videoId": "A9vtPXPPuNw", "start": 4264, "end": 4527 },
+    { "title": "雪の華", "videoId": "A9vtPXPPuNw", "start": 4684, "end": 4988 },
+    { "title": "ソラニン", "videoId": "A9vtPXPPuNw", "start": 5243, "end": 5467 },
+    { "title": "猫", "videoId": "A9vtPXPPuNw", "start": 5613, "end": 5879 },
+    { "title": "メランコリック", "videoId": "A9vtPXPPuNw", "start": 6032, "end": 6250 },
+    { "title": "心拍数♯0822", "videoId": "A9vtPXPPuNw", "start": 6394, "end": 6714 },
+    { "title": "千の夜をこえて", "videoId": "A9vtPXPPuNw", "start": 6828, "end": 7120 },
+    { "title": "アイラブユー (愛を謳う)", "videoId": "A9vtPXPPuNw", "start": 7220, "end": 7446 },
+    { "title": "六等星の夜", "videoId": "A9vtPXPPuNw", "start": 7572, "end": 7883 },
+    { "title": "Everything", "videoId": "A9vtPXPPuNw", "start": 7986, "end": 8417 },
+    { "title": "Snow halation", "videoId": "A9vtPXPPuNw", "start": 8698, "end": 8936 }
+  ],
+  "月を感じる曲歌枠": [
+    { "title": "ムーンライト伝説", "videoId": "r7WKUiXtdHc", "start": 375, "end": 535 },
+    { "title": "ツキアカリのミチシルベ", "videoId": "r7WKUiXtdHc", "start": 736, "end": 974 },
+    { "title": "月を見ていた", "videoId": "r7WKUiXtdHc", "start": 1184, "end": 1449 },
+    { "title": "今宵の月のように", "videoId": "r7WKUiXtdHc", "start": 1638, "end": 1887 },
+    { "title": "回る空うさぎ", "videoId": "r7WKUiXtdHc", "start": 2019, "end": 2205 },
+    { "title": "三日月 (絢香)", "videoId": "r7WKUiXtdHc", "start": 2436, "end": 2699 },
+    { "title": "ミカヅキ (さユり)", "videoId": "r7WKUiXtdHc", "start": 2830, "end": 3091 },
+    { "title": "月に吠える", "videoId": "r7WKUiXtdHc", "start": 3230, "end": 3474 },
+    { "title": "だんご大家族", "videoId": "r7WKUiXtdHc", "start": 3641, "end": 3918 },
+    { "title": "月のワルツ", "videoId": "r7WKUiXtdHc", "start": 4085, "end": 4346 },
+    { "title": "月光", "videoId": "r7WKUiXtdHc", "start": 4531, "end": 4832 }
+  ],
+  "25万人耐久 和を感じる曲歌枠": [
+    { "title": "渡月橋 ～君 想ふ～", "videoId": "c_vTCF4K0Lc", "start": 255, "end": 518 },
+    { "title": "魔性の女A", "videoId": "c_vTCF4K0Lc", "start": 624, "end": 860 },
+    { "title": "拍手喝采歌合", "videoId": "c_vTCF4K0Lc", "start": 1049, "end": 1305 },
+    { "title": "残響散歌", "videoId": "c_vTCF4K0Lc", "start": 1465, "end": 1658 },
+    { "title": "甲賀忍法帖", "videoId": "c_vTCF4K0Lc", "start": 1815, "end": 2058 },
+    { "title": "鬼の宴", "videoId": "c_vTCF4K0Lc", "start": 2307, "end": 2495 },
+    { "title": "花になって", "videoId": "c_vTCF4K0Lc", "start": 2589, "end": 2801 },
+    { "title": "酔いどれ知らず", "videoId": "c_vTCF4K0Lc", "start": 2924, "end": 3154 },
+    { "title": "ヒュルリラパッパ", "videoId": "c_vTCF4K0Lc", "start": 3265, "end": 3479 },
+    { "title": "ひぐらしのなく頃に", "videoId": "c_vTCF4K0Lc", "start": 3569, "end": 3885 },
+    { "title": "千本桜", "videoId": "c_vTCF4K0Lc", "start": 3982, "end": 4233 },
+    { "title": "炎 (Homura)", "videoId": "c_vTCF4K0Lc", "start": 4354, "end": 4663 },
+    { "title": "茜さす", "videoId": "c_vTCF4K0Lc", "start": 4844, "end": 5181 },
+    { "title": "紅蓮華", "videoId": "c_vTCF4K0Lc", "start": 5319, "end": 5588 },
+    { "title": "春よ、来い", "videoId": "c_vTCF4K0Lc", "start": 5931, "end": 6227 },
+    { "title": "プラネタリウム", "videoId": "c_vTCF4K0Lc", "start": 6305, "end": 6626 },
+    { "title": "竈門炭治郎のうた", "videoId": "c_vTCF4K0Lc", "start": 6754, "end": 7093 },
+    { "title": "いつも何度でも", "videoId": "c_vTCF4K0Lc", "start": 7245, "end": 7465 },
+    { "title": "神のまにまに", "videoId": "c_vTCF4K0Lc", "start": 7906, "end": 8168 },
+    { "title": "甲賀忍法帖 (耐久ラスト)", "videoId": "c_vTCF4K0Lc", "start": 8551, "end": 8769 }
+  ],
+  "取得できなかった歌枠（ダミー）": [
+    { "title": "※曲名を入れてください", "videoId": "6C1IIRaV-Dg", "start": 0, "end": 100 }
   ]
 };
 
@@ -216,25 +341,23 @@ let player;
 let shuffle = false;
 let isApiReady = false; 
 
-// ★ 渋滞解消：YouTubeの準備完了をキャッチ ★
 function onYouTubeIframeAPIReady() {
   isApiReady = true;
   tryInitPlayer();
 }
 
-// ★ リストの準備 ★
 function initApp() {
   const firstPlaylistName = Object.keys(myMusicData)[0];
   playlist = myMusicData[firstPlaylistName];
   initSelector();
   createList(); 
-  tryInitPlayer(); // リストができたらプレイヤー作成を試みる
+  tryInitPlayer();
 }
 
-// ★ プレイヤー作成（両方揃ったら動く） ★
 function tryInitPlayer() {
   if (isApiReady && playlist.length > 0 && !player) {
     player = new YT.Player('player', {
+      host: 'https://www.youtube-nocookie.com',
       width: '100%',
       height: '100%',
       videoId: playlist[0].videoId,
@@ -289,11 +412,19 @@ function loadTrack(i) {
   updateUI();
 }
 
+// アイコンの切り替えを連動させる
 function togglePlay() {
   if(!player) return;
   const s = player.getPlayerState();
-  if (s === 1) player.pauseVideo();
-  else player.playVideo();
+  if (s === 1) {
+    player.pauseVideo();
+    document.getElementById("icon-play").style.display = "block";
+    document.getElementById("icon-pause").style.display = "none";
+  } else {
+    player.playVideo();
+    document.getElementById("icon-play").style.display = "none";
+    document.getElementById("icon-pause").style.display = "block";
+  }
 }
 
 function next() {
@@ -308,12 +439,16 @@ function prev() {
 
 function toggleShuffle() {
   shuffle = !shuffle;
-  document.getElementById("shuffleBtn").textContent = shuffle ? "🔀 オン" : "🔀 オフ";
+  document.getElementById("shuffleText").textContent = shuffle ? "オン" : "オフ";
   document.getElementById("shuffleBtn").style.color = shuffle ? "#FFC547" : "#fff";
 }
 
 function onPlayerStateChange(event) {
   if (event.data === YT.PlayerState.PLAYING) {
+    // 再生中は一時停止アイコンにする
+    document.getElementById("icon-play").style.display = "none";
+    document.getElementById("icon-pause").style.display = "block";
+    
     clearInterval(window._timer);
     window._timer = setInterval(() => {
       const item = playlist[current];
@@ -323,6 +458,9 @@ function onPlayerStateChange(event) {
       }
     }, 1000);
   } else {
+    // 停止中などは再生アイコンにする
+    document.getElementById("icon-play").style.display = "block";
+    document.getElementById("icon-pause").style.display = "none";
     clearInterval(window._timer);
   }
 }
@@ -361,8 +499,13 @@ document.getElementById("volume").oninput = e => {
   if(player) player.setVolume(e.target.value);
 };
 
-// 起動！
-initApp();
+window.onload = function() {
+  try {
+    initApp();
+  } catch (error) {
+    console.error("Error:", error);
+  }
+};
 </script>
 </body>
 </html>
