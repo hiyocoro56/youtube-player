@@ -210,4 +210,200 @@ const myMusicData = {
     { "title": "カーテンコール", "videoId": "b-P-71jE-PI", "start": 2283, "end": 2650 },
     { "title": "青のすみか", "videoId": "b-P-71jE-PI", "start": 2709, "end": 3000 },
     { "title": "葛飾ラプソディー", "videoId": "b-P-71jE-PI", "start": 3076, "end": 3350 },
-    { "title": "サムライハート (Some Like It Hot!!)", "videoId": "b-P-71jE-PI", "start": 337
+    { "title": "サムライハート (Some Like It Hot!!)", "videoId": "b-P-71jE-PI", "start": 3378, "end": 3700 },
+    { "title": "ウィーアー!", "videoId": "b-P-71jE-PI", "start": 3739, "end": 4100 }
+  ],
+  "30万人記念歌枠 2026/03/07": [
+    { "title": "RPG", "videoId": "A2SdplCJEeA", "start": 128, "end": 586 },
+    { "title": "灰色と青", "videoId": "A2SdplCJEeA", "start": 586, "end": 1034 },
+    { "title": "ワールドイズマイン", "videoId": "A2SdplCJEeA", "start": 1034, "end": 1427 },
+    { "title": "Just Be Friends", "videoId": "A2SdplCJEeA", "start": 1427, "end": 1858 },
+    { "title": "ひまわりの約束", "videoId": "A2SdplCJEeA", "start": 1858, "end": 2281 },
+    { "title": "マイ フレンド", "videoId": "A2SdplCJEeA", "start": 2281, "end": 2679 },
+    { "title": "世界の続き", "videoId": "A2SdplCJEeA", "start": 2679, "end": 3061 },
+    { "title": "ハル", "videoId": "A2SdplCJEeA", "start": 3061, "end": 3440 },
+    { "title": "ルル", "videoId": "A2SdplCJEeA", "start": 3440, "end": 3847 },
+    { "title": "ゴールデンタイムラバー", "videoId": "A2SdplCJEeA", "start": 3847, "end": 4272 },
+    { "title": "乱舞のメロディ", "videoId": "A2SdplCJEeA", "start": 4272, "end": 4587 },
+    { "title": "らしさ", "videoId": "A2SdplCJEeA", "start": 4587, "end": 5026 },
+    { "title": "ともよ", "videoId": "A2SdplCJEeA", "start": 5026, "end": 5432 },
+    { "title": "全力少年", "videoId": "A2SdplCJEeA", "start": 5432, "end": 5734 },
+    { "title": "僕らまた", "videoId": "A2SdplCJEeA", "start": 5734, "end": 6031 },
+    { "title": "more than words", "videoId": "A2SdplCJEeA", "start": 6031, "end": 6426 },
+    { "title": "春の歌", "videoId": "A2SdplCJEeA", "start": 6426, "end": 6787 },
+    { "title": "夢をかなえてドラえもん", "videoId": "A2SdplCJEeA", "start": 6787, "end": 7236 },
+    { "title": "ファンファーレ", "videoId": "A2SdplCJEeA", "start": 7236, "end": 7525 },
+    { "title": "心なし", "videoId": "A2SdplCJEeA", "start": 7525, "end": 7869 },
+    { "title": "アイロニ", "videoId": "A2SdplCJEeA", "start": 7869, "end": 8258 },
+    { "title": "I beg you", "videoId": "A2SdplCJEeA", "start": 8258, "end": 8633 },
+    { "title": "春はゆく", "videoId": "A2SdplCJEeA", "start": 8633, "end": 9060 },
+    { "title": "タバコ", "videoId": "A2SdplCJEeA", "start": 9060, "end": 9496 },
+    { "title": "ガーネット", "videoId": "A2SdplCJEeA", "start": 9496, "end": 9851 },
+    { "title": "Beautiful World", "videoId": "A2SdplCJEeA", "start": 9851, "end": 10193 },
+    { "title": "Ghost of a smile", "videoId": "A2SdplCJEeA", "start": 10193, "end": 10582 },
+    { "title": "世界の約束", "videoId": "A2SdplCJEeA", "start": 10582, "end": 10861 },
+    { "title": "プラチナ", "videoId": "A2SdplCJEeA", "start": 10861, "end": 11322 },
+    { "title": "い", "videoId": "A2SdplCJEeA", "start": 11322, "end": 11635 }
+  ]
+};
+
+let playlist = [];
+let current = 0;
+let player;
+let shuffle = false;
+let isApiReady = false; 
+
+function initApp() {
+  const firstPlaylistName = Object.keys(myMusicData)[0];
+  playlist = myMusicData[firstPlaylistName];
+  initSelector();
+  createList(); 
+}
+
+function onYouTubeIframeAPIReady() {
+  isApiReady = true;
+  tryInitPlayer();
+}
+
+function tryInitPlayer() {
+  if (isApiReady && playlist.length > 0 && !player) {
+    player = new YT.Player('player', {
+      host: 'https://www.youtube-nocookie.com',
+      width: '100%',
+      height: '100%',
+      videoId: playlist[0].videoId,
+      playerVars: { 'playsinline': 1, 'rel': 0 },
+      events: {
+        'onReady': (event) => {
+          event.target.setVolume(50);
+          current = 0;
+          player.cueVideoById({
+            videoId: playlist[0].videoId,
+            startSeconds: playlist[0].start
+          });
+          updateUI();
+        },
+        'onStateChange': onPlayerStateChange
+      }
+    });
+  }
+}
+
+function initSelector() {
+  const sel = document.getElementById("playlistSelect");
+  sel.innerHTML = ""; 
+  Object.keys(myMusicData).forEach(name => {
+    const opt = document.createElement("option");
+    opt.value = name;
+    opt.textContent = name;
+    sel.appendChild(opt);
+  });
+  sel.onchange = () => {
+    playlist = myMusicData[sel.value];
+    current = 0;
+    createList();
+    if(player && player.loadVideoById){
+        player.loadVideoById({
+          videoId: playlist[0].videoId,
+          startSeconds: playlist[0].start
+        });
+    }
+    updateUI();
+  };
+}
+
+function loadTrack(i) {
+  current = i;
+  const item = playlist[i];
+  if(player && player.loadVideoById){
+      player.loadVideoById({
+        videoId: item.videoId,
+        startSeconds: item.start
+      });
+  }
+  updateUI();
+}
+
+function togglePlay() {
+  if(!player) return;
+  const s = player.getPlayerState();
+  if (s === 1) player.pauseVideo();
+  else player.playVideo();
+}
+
+function next() {
+  let nextIdx = shuffle ? Math.floor(Math.random() * playlist.length) : (current + 1) % playlist.length;
+  loadTrack(nextIdx);
+}
+
+function prev() {
+  let prevIdx = (current - 1 + playlist.length) % playlist.length;
+  loadTrack(prevIdx);
+}
+
+function toggleShuffle() {
+  shuffle = !shuffle;
+  document.getElementById("shuffleBtn").textContent = shuffle ? "🔀 オン" : "🔀 オフ";
+  document.getElementById("shuffleBtn").style.color = shuffle ? "#FFC547" : "#fff";
+}
+
+function onPlayerStateChange(event) {
+  if (event.data === YT.PlayerState.PLAYING) {
+    clearInterval(window._timer);
+    window._timer = setInterval(() => {
+      const item = playlist[current];
+      const now = player.getCurrentTime();
+      if (item.end && now >= item.end) {
+        next();
+      }
+    }, 1000);
+  } else {
+    clearInterval(window._timer);
+  }
+}
+
+function createList() {
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+  playlist.forEach((item, i) => {
+    const div = document.createElement("div");
+    div.className = "item";
+    
+    const num = document.createElement("span");
+    num.className = "track-number";
+    num.textContent = String(i + 1).padStart(2, '0');
+    
+    const title = document.createElement("span");
+    title.textContent = item.title;
+    
+    div.appendChild(num);
+    div.appendChild(title);
+    
+    div.onclick = () => loadTrack(i);
+    list.appendChild(div);
+  });
+  updateUI();
+}
+
+function updateUI() {
+  const items = document.querySelectorAll(".item");
+  items.forEach((el, i) => {
+    el.classList.toggle("active", i === current);
+  });
+}
+
+document.getElementById("volume").oninput = e => {
+  if(player) player.setVolume(e.target.value);
+};
+
+// ★ 安全装置：エラーがあれば画面に表示する ★
+window.onload = function() {
+  try {
+    initApp();
+  } catch (error) {
+    document.getElementById("list").innerHTML = `<div class="error-msg"><b>【エラー】プログラムの読み込みに失敗しました。</b><br>コードのコピー漏れや、不要な文字が混ざっていないか確認してください。<br><br>詳細: ${error.message}</div>`;
+  }
+};
+</script>
+</body>
+</html>
