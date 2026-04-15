@@ -3,10 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Music Player</title>
-
-<link rel="manifest" href="/youtube-player/manifest.json">
-<meta name="theme-color" content="#0f172a">
+<title>Nana's Music Player</title>
 
 <style>
 /* 全体の背景 */
@@ -797,13 +794,12 @@ function updateUI() {
 
 document.getElementById("volume").oninput = e => { if(player) player.setVolume(e.target.value); };
 
-window.addEventListener("load", () => {
-  initApp();
-}
-                        
-  if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("/youtube-player/sw.js");
-}
+window.onload = function() {
+  try {
+    initApp();
+  } catch (error) {
+    console.error("Error:", error);
+  }
 };
 </script>
 </body>
