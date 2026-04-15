@@ -15,7 +15,7 @@ body {
   min-height: 100vh;
 }
 
-#app-container { max-width: 700px; margin: 0 auto; padding: 20px; }
+#app-container { max-width: 900px; margin: 0 auto; padding: 20px; }
 
 .app-title {
   text-align: center; font-size: 1.5rem; font-weight: bold;
@@ -39,17 +39,9 @@ body {
 }
 
 .controls-row {
-  display: flex; justify-content: space-between; align-items: center;
+  display: flex; justify-content: center; align-items: center;
   flex-wrap: wrap; gap: 15px;
 }
-
-select {
-  flex-grow: 1; padding: 12px 15px; font-size: 15px; font-weight: bold;
-  color: #fff; background: rgba(99, 174, 217, 0.15);
-  border: 1px solid rgba(99, 174, 217, 0.3); border-radius: 8px;
-  outline: none; cursor: pointer;
-}
-select option { background: #1e293b; color: #fff; }
 
 /* お洒落なSVGアイコンボタン */
 .player-buttons { display: flex; gap: 12px; align-items: center; }
@@ -69,26 +61,63 @@ select option { background: #1e293b; color: #fff; }
 .volume-wrapper { display: flex; align-items: center; gap: 10px; }
 #volume { width: 100px; accent-color: #63AED9; cursor: pointer; }
 
-/* 曲リスト */
-#list { display: flex; flex-direction: column; gap: 10px; }
+/* ★ 2画面レイアウト（PCは左右、スマホは上下） ★ */
+.panels-wrapper {
+  display: flex; flex-direction: column; gap: 20px;
+}
+@media(min-width: 768px) {
+  .panels-wrapper { flex-direction: row; align-items: flex-start; }
+}
+
+.panel {
+  flex: 1; background: rgba(0, 0, 0, 0.2); border-radius: 16px; padding: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+.panel-title {
+  font-size: 1.1rem; font-weight: bold; margin-bottom: 15px; color: #FFC547;
+  display: flex; justify-content: space-between; align-items: center;
+}
+
+select {
+  width: 100%; padding: 10px; font-size: 14px; font-weight: bold;
+  color: #fff; background: rgba(99, 174, 217, 0.15);
+  border: 1px solid rgba(99, 174, 217, 0.3); border-radius: 8px;
+  outline: none; cursor: pointer; margin-bottom: 10px;
+}
+select option { background: #1e293b; color: #fff; }
+
+/* 曲リストのアイテム */
+.list-container { display: flex; flex-direction: column; gap: 8px; }
 .item {
-  display: flex; align-items: center; padding: 16px 20px;
-  background: rgba(255, 255, 255, 0.02); border-radius: 12px;
-  cursor: pointer; border-left: 4px solid transparent; transition: all 0.3s ease;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 15px; background: rgba(255, 255, 255, 0.03); border-radius: 10px;
+  border-left: 4px solid transparent; transition: all 0.2s ease;
 }
-.item:hover { background: rgba(255, 255, 255, 0.06); transform: translateX(5px); }
+.item:hover { background: rgba(255, 255, 255, 0.08); }
+
+/* 再生中のハイライト */
 .item.active { 
-  background: rgba(255, 197, 71, 0.1); border-left: 4px solid #FFC547;
-  color: #FFC547; font-weight: bold; box-shadow: 0 4px 15px rgba(255, 197, 71, 0.1);
+  background: rgba(99, 174, 217, 0.15); border-left: 4px solid #63AED9;
+  color: #fff; font-weight: bold; box-shadow: 0 0 10px rgba(99, 174, 217, 0.2);
 }
-.track-number { font-size: 0.9rem; opacity: 0.5; margin-right: 15px; font-family: monospace; }
+
+.item-info { flex-grow: 1; cursor: pointer; display: flex; align-items: center; overflow: hidden; }
+.track-number { font-size: 0.8rem; opacity: 0.5; margin-right: 10px; font-family: monospace; }
+.track-title { font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* アクションボタン（＋、↑、↓、×） */
+.action-btn {
+  background: rgba(255,255,255,0.1); border: none; color: white;
+  border-radius: 5px; width: 28px; height: 28px; margin-left: 5px;
+  cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center;
+}
+.action-btn:hover { background: #FFC547; color: #000; }
+.action-btn.delete:hover { background: #ff4d4d; color: #fff; }
 
 ::-webkit-scrollbar { width: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: #63AED9; }
 
-/* エラーメッセージ用 */
 .error-msg {
   background: rgba(255, 0, 0, 0.1); border: 1px solid #ff4d4d;
   color: #ff4d4d; padding: 20px; border-radius: 10px; line-height: 1.6;
@@ -106,8 +135,6 @@ select option { background: #1e293b; color: #fff; }
   </div>
 
   <div id="controls">
-    <select id="playlistSelect"></select>
-    
     <div class="controls-row">
       <div class="player-buttons">
         <button onclick="prev()" title="前へ">
@@ -131,19 +158,31 @@ select option { background: #1e293b; color: #fff; }
     </div>
   </div>
 
-  <div id="list">
-    <div class="error-msg" id="loading-msg">
-      <b>【プログラム読み込み中、またはエラー発生】</b><br>
-      もし数秒待っても曲のリストが出ない場合、プログラムのどこかに「文字の消し間違い」や「コピー漏れ」が発生しています。<br>
-      キーボードの <b>F12</b> を押して「Console」タブの赤い文字を確認してください。
+  <div id="error-container"></div>
+
+  <div class="panels-wrapper" id="main-panels" style="display:none;">
+    
+    <div class="panel">
+      <div class="panel-title">📚 配信アーカイブ</div>
+      <select id="playlistSelect"></select>
+      <div id="library-list" class="list-container"></div>
     </div>
+
+    <div class="panel">
+      <div class="panel-title">
+        🎧 マイセトリ
+        <button onclick="clearCustom()" style="font-size:12px; padding:5px 10px; border-radius:5px; background:rgba(255,0,0,0.2); color:#ff4d4d; border:1px solid #ff4d4d; cursor:pointer;">全消去</button>
+      </div>
+      <div id="custom-list" class="list-container"></div>
+    </div>
+
   </div>
 </div>
 
 <script src="https://www.youtube.com/iframe_api"></script>
 
 <script>
-// ★ 全16枠分の曲データ ★
+// ★ 曲データ（今回追加分まで） ★
 const myMusicData = {
   "少年漫画歌枠 2026/03/17": [
     { "title": "DAN DAN 心魅かれてく", "videoId": "b-P-71jE-PI", "start": 120, "end": 500 },
@@ -188,124 +227,6 @@ const myMusicData = {
     { "title": "世界の約束", "videoId": "A2SdplCJEeA", "start": 10582, "end": 10861 },
     { "title": "プラチナ", "videoId": "A2SdplCJEeA", "start": 10861, "end": 11322 },
     { "title": "い", "videoId": "A2SdplCJEeA", "start": 11322, "end": 11635 }
-  ],
-  "涙が溢れるような泣ける曲歌枠": [
-    { "title": "For Fruits Basket", "videoId": "b0RQ4FENW60", "start": 492, "end": 767 },
-    { "title": "行かないで", "videoId": "b0RQ4FENW60", "start": 1036, "end": 1295 },
-    { "title": "アイネクライネ", "videoId": "b0RQ4FENW60", "start": 1416, "end": 1729 },
-    { "title": "アイコトバ", "videoId": "b0RQ4FENW60", "start": 1856, "end": 2151 },
-    { "title": "ハロ／ハワユ", "videoId": "b0RQ4FENW60", "start": 2336, "end": 2637 },
-    { "title": "Sincerely", "videoId": "b0RQ4FENW60", "start": 2774, "end": 3083 },
-    { "title": "One more time, One more chance", "videoId": "b0RQ4FENW60", "start": 3227, "end": 3570 },
-    { "title": "たしかなこと", "videoId": "b0RQ4FENW60", "start": 3725, "end": 4053 },
-    { "title": "Viator", "videoId": "b0RQ4FENW60", "start": 4188, "end": 4463 },
-    { "title": "君の夢", "videoId": "b0RQ4FENW60", "start": 4667, "end": 4886 },
-    { "title": "一番の宝物", "videoId": "b0RQ4FENW60", "start": 5069, "end": 5370 }
-  ],
-  "デビュー1.5周年記念歌枠": [
-    { "title": "白い雪のプリンセスは", "videoId": "A9vtPXPPuNw", "start": 323, "end": 580 },
-    { "title": "クリスマス・イブ", "videoId": "A9vtPXPPuNw", "start": 809, "end": 1032 },
-    { "title": "ふゆびより", "videoId": "A9vtPXPPuNw", "start": 1164, "end": 1445 },
-    { "title": "好き！雪！本気マジック", "videoId": "A9vtPXPPuNw", "start": 1650, "end": 1844 },
-    { "title": "夜撫でるメノウ", "videoId": "A9vtPXPPuNw", "start": 1992, "end": 2286 },
-    { "title": "ベテルギウス", "videoId": "A9vtPXPPuNw", "start": 2510, "end": 2745 },
-    { "title": "粉雪", "videoId": "A9vtPXPPuNw", "start": 2874, "end": 3173 },
-    { "title": "深愛", "videoId": "A9vtPXPPuNw", "start": 3368, "end": 3638 },
-    { "title": "115万キロのフィルム", "videoId": "A9vtPXPPuNw", "start": 3798, "end": 4135 },
-    { "title": "心絵", "videoId": "A9vtPXPPuNw", "start": 4264, "end": 4527 },
-    { "title": "雪の華", "videoId": "A9vtPXPPuNw", "start": 4684, "end": 4988 },
-    { "title": "ソラニン", "videoId": "A9vtPXPPuNw", "start": 5243, "end": 5467 },
-    { "title": "猫", "videoId": "A9vtPXPPuNw", "start": 5613, "end": 5879 },
-    { "title": "メランコリック", "videoId": "A9vtPXPPuNw", "start": 6032, "end": 6250 },
-    { "title": "心拍数♯0822", "videoId": "A9vtPXPPuNw", "start": 6394, "end": 6714 },
-    { "title": "千の夜をこえて", "videoId": "A9vtPXPPuNw", "start": 6828, "end": 7120 },
-    { "title": "アイラブユー (愛を謳う)", "videoId": "A9vtPXPPuNw", "start": 7220, "end": 7446 },
-    { "title": "六等星の夜", "videoId": "A9vtPXPPuNw", "start": 7572, "end": 7883 },
-    { "title": "Everything", "videoId": "A9vtPXPPuNw", "start": 7986, "end": 8417 },
-    { "title": "Snow halation", "videoId": "A9vtPXPPuNw", "start": 8698, "end": 8936 }
-  ],
-  "月を感じる曲歌枠": [
-    { "title": "ムーンライト伝説", "videoId": "r7WKUiXtdHc", "start": 375, "end": 535 },
-    { "title": "ツキアカリのミチシルベ", "videoId": "r7WKUiXtdHc", "start": 736, "end": 974 },
-    { "title": "月を見ていた", "videoId": "r7WKUiXtdHc", "start": 1184, "end": 1449 },
-    { "title": "今宵の月のように", "videoId": "r7WKUiXtdHc", "start": 1638, "end": 1887 },
-    { "title": "回る空うさぎ", "videoId": "r7WKUiXtdHc", "start": 2019, "end": 2205 },
-    { "title": "三日月 (絢香)", "videoId": "r7WKUiXtdHc", "start": 2436, "end": 2699 },
-    { "title": "ミカヅキ (さユり)", "videoId": "r7WKUiXtdHc", "start": 2830, "end": 3091 },
-    { "title": "月に吠える", "videoId": "r7WKUiXtdHc", "start": 3230, "end": 3474 },
-    { "title": "だんご大家族", "videoId": "r7WKUiXtdHc", "start": 3641, "end": 3918 },
-    { "title": "月のワルツ", "videoId": "r7WKUiXtdHc", "start": 4085, "end": 4346 },
-    { "title": "月光", "videoId": "r7WKUiXtdHc", "start": 4531, "end": 4832 }
-  ],
-  "25万人耐久 和を感じる曲歌枠": [
-    { "title": "渡月橋 ～君 想ふ～", "videoId": "c_vTCF4K0Lc", "start": 255, "end": 518 },
-    { "title": "魔性の女A", "videoId": "c_vTCF4K0Lc", "start": 624, "end": 860 },
-    { "title": "拍手喝采歌合", "videoId": "c_vTCF4K0Lc", "start": 1049, "end": 1305 },
-    { "title": "残響散歌", "videoId": "c_vTCF4K0Lc", "start": 1465, "end": 1658 },
-    { "title": "甲賀忍法帖", "videoId": "c_vTCF4K0Lc", "start": 1815, "end": 2058 },
-    { "title": "鬼の宴", "videoId": "c_vTCF4K0Lc", "start": 2307, "end": 2495 },
-    { "title": "花になって", "videoId": "c_vTCF4K0Lc", "start": 2589, "end": 2801 },
-    { "title": "酔いどれ知らず", "videoId": "c_vTCF4K0Lc", "start": 2924, "end": 3154 },
-    { "title": "ヒュルリラパッパ", "videoId": "c_vTCF4K0Lc", "start": 3265, "end": 3479 },
-    { "title": "ひぐらしのなく頃に", "videoId": "c_vTCF4K0Lc", "start": 3569, "end": 3885 },
-    { "title": "千本桜", "videoId": "c_vTCF4K0Lc", "start": 3982, "end": 4233 },
-    { "title": "炎 (Homura)", "videoId": "c_vTCF4K0Lc", "start": 4354, "end": 4663 },
-    { "title": "茜さす", "videoId": "c_vTCF4K0Lc", "start": 4844, "end": 5181 },
-    { "title": "紅蓮華", "videoId": "c_vTCF4K0Lc", "start": 5319, "end": 5588 },
-    { "title": "春よ、来い", "videoId": "c_vTCF4K0Lc", "start": 5931, "end": 6227 },
-    { "title": "プラネタリウム", "videoId": "c_vTCF4K0Lc", "start": 6305, "end": 6626 },
-    { "title": "竈門炭治郎のうた", "videoId": "c_vTCF4K0Lc", "start": 6754, "end": 7093 },
-    { "title": "いつも何度でも", "videoId": "c_vTCF4K0Lc", "start": 7245, "end": 7465 },
-    { "title": "神のまにまに", "videoId": "c_vTCF4K0Lc", "start": 7906, "end": 8168 },
-    { "title": "甲賀忍法帖 (耐久ラスト)", "videoId": "c_vTCF4K0Lc", "start": 8551, "end": 8769 }
-  ],
-  "しっとりバラード歌枠 2026/03/27": [
-    { "title": "忘れじの言の葉", "videoId": "8qD11V7ixeM", "start": 362, "end": 600 },
-    { "title": "シンデレラボーイ", "videoId": "8qD11V7ixeM", "start": 783, "end": 1020 },
-    { "title": "左耳", "videoId": "8qD11V7ixeM", "start": 1223, "end": 1500 },
-    { "title": "ただ声一つ", "videoId": "8qD11V7ixeM", "start": 1732, "end": 1920 },
-    { "title": "僕の音", "videoId": "8qD11V7ixeM", "start": 2068, "end": 2350 },
-    { "title": "3月9日", "videoId": "8qD11V7ixeM", "start": 2508, "end": 2760 },
-    { "title": "オズ", "videoId": "8qD11V7ixeM", "start": 2960, "end": 3165 },
-    { "title": "なんでもないや", "videoId": "8qD11V7ixeM", "start": 3359, "end": 3710 },
-    { "title": "月のワルツ", "videoId": "8qD11V7ixeM", "start": 3905, "end": 4137 }
-  ],
-  "2026年初ナナの日歌枠 2026/01/07": [
-    { "title": "U", "videoId": "LjxuB9iKLi4", "start": 383, "end": 540 },
-    { "title": "ヒュルリラパッパ", "videoId": "LjxuB9iKLi4", "start": 677, "end": 870 },
-    { "title": "勇者", "videoId": "LjxuB9iKLi4", "start": 1057, "end": 1250 },
-    { "title": "残酷な夜に輝け", "videoId": "LjxuB9iKLi4", "start": 1394, "end": 1770 },
-    { "title": "アイリスアウト", "videoId": "LjxuB9iKLi4", "start": 1893, "end": 2022 },
-    { "title": "give it back", "videoId": "LjxuB9iKLi4", "start": 2149, "end": 2350 },
-    { "title": "シルエット", "videoId": "LjxuB9iKLi4", "start": 2569, "end": 2790 },
-    { "title": "風のゆくえ", "videoId": "LjxuB9iKLi4", "start": 2895, "end": 3148 },
-    { "title": "アゲハ蝶", "videoId": "LjxuB9iKLi4", "start": 3230, "end": 3500 },
-    { "title": "スパークル", "videoId": "LjxuB9iKLi4", "start": 3668, "end": 4056 },
-    { "title": "創聖のアクエリオン", "videoId": "LjxuB9iKLi4", "start": 4181, "end": 4450 }
-  ],
-  "縦型配信歌枠 2025/11/07": [
-    { "title": "Rolling star", "videoId": "ezlpvm0URgA", "start": 561, "end": 744 },
-    { "title": "美しい鰭", "videoId": "ezlpvm0URgA", "start": 903, "end": 1088 },
-    { "title": "革命移動中", "videoId": "ezlpvm0URgA", "start": 1235, "end": 1431 },
-    { "title": "ナハトムジーク", "videoId": "ezlpvm0URgA", "start": 1564, "end": 1824 },
-    { "title": "Tot Musica", "videoId": "ezlpvm0URgA", "start": 2039, "end": 2228 },
-    { "title": "それを愛と呼ぶなら", "videoId": "ezlpvm0URgA", "start": 2481, "end": 2747 },
-    { "title": "忘れてください", "videoId": "ezlpvm0URgA", "start": 2933, "end": 3370 },
-    { "title": "幾億光年", "videoId": "ezlpvm0URgA", "start": 3567, "end": 3840 },
-    { "title": "僕が死のうと思ったのは", "videoId": "ezlpvm0URgA", "start": 4030, "end": 4382 },
-    { "title": "StarRingChild", "videoId": "ezlpvm0URgA", "start": 4536, "end": 4829 }
-  ],
-  "魑魅魍魎！なハロウィン歌枠 2025/10/27": [
-    { "title": "ファッションモンスター", "videoId": "MAJL9MiokcQ", "start": 396, "end": 665 },
-    { "title": "ヴィラン", "videoId": "MAJL9MiokcQ", "start": 864, "end": 1054 },
-    { "title": "ビビデバ", "videoId": "MAJL9MiokcQ", "start": 1237, "end": 1414 },
-    { "title": "アイリスアウト", "videoId": "MAJL9MiokcQ", "start": 1548, "end": 1689 },
-    { "title": "オトノケ", "videoId": "MAJL9MiokcQ", "start": 1841, "end": 2025 },
-    { "title": "唱", "videoId": "MAJL9MiokcQ", "start": 2220, "end": 2407 },
-    { "title": "ドクズ", "videoId": "MAJL9MiokcQ", "start": 2539, "end": 2658 },
-    { "title": "怪物", "videoId": "MAJL9MiokcQ", "start": 2766, "end": 2976 },
-    { "title": "月に吠える", "videoId": "MAJL9MiokcQ", "start": 3141, "end": 3389 },
-    { "title": "ヴァンパイア", "videoId": "MAJL9MiokcQ", "start": 3523, "end": 3701 }
   ],
   "アニソンいっぱい歌枠 2025/09/07": [
     { "title": "星座になれたら", "videoId": "a3m0TEAv1TQ", "start": 318, "end": 551 },
@@ -354,42 +275,23 @@ const myMusicData = {
     { "title": "小さな手のひら", "videoId": "NnAAYUgSw28", "start": 3213, "end": 3454 },
     { "title": "いつも何度でも", "videoId": "NnAAYUgSw28", "start": 3582, "end": 3780 },
     { "title": "深海のリトルクライ", "videoId": "NnAAYUgSw28", "start": 3907, "end": 4130 }
-  ],
-  "リクエスト曲歌枠 2025/07/17": [
-    { "title": "打上花火", "videoId": "auy95jxJfCQ", "start": 364, "end": 629 },
-    { "title": "プラネタリウム", "videoId": "auy95jxJfCQ", "start": 805, "end": 1085 },
-    { "title": "アイのシナリオ", "videoId": "auy95jxJfCQ", "start": 1270, "end": 1512 },
-    { "title": "小さきもの", "videoId": "auy95jxJfCQ", "start": 1708, "end": 2029 },
-    { "title": "花の塔", "videoId": "auy95jxJfCQ", "start": 2210, "end": 2474 },
-    { "title": "花に亡霊", "videoId": "auy95jxJfCQ", "start": 2673, "end": 2900 },
-    { "title": "ハロ／ハワユ", "videoId": "auy95jxJfCQ", "start": 3146, "end": 3422 },
-    { "title": "あの夏が飽和する。", "videoId": "auy95jxJfCQ", "start": 3562, "end": 3959 },
-    { "title": "空色デイズ", "videoId": "auy95jxJfCQ", "start": 4139, "end": 4366 },
-    { "title": "点描の唄", "videoId": "auy95jxJfCQ", "start": 4499, "end": 4778 },
-    { "title": "うたかた花火", "videoId": "auy95jxJfCQ", "start": 5075, "end": 5395 }
-  ],
-  "夏×懐メロソング歌枠 2025/07/07": [
-    { "title": "青と夏", "videoId": "w3p63Ou8r6c", "start": 355, "end": 567 },
-    { "title": "夏色", "videoId": "w3p63Ou8r6c", "start": 725, "end": 893 },
-    { "title": "渚にまつわるエトセトラ", "videoId": "w3p63Ou8r6c", "start": 1024, "end": 1206 },
-    { "title": "ひまわりの約束", "videoId": "w3p63Ou8r6c", "start": 1429, "end": 1720 },
-    { "title": "青春ライン", "videoId": "w3p63Ou8r6c", "start": 2069, "end": 2287 },
-    { "title": "少年時代", "videoId": "w3p63Ou8r6c", "start": 2514, "end": 2697 },
-    { "title": "HOT LIMIT", "videoId": "w3p63Ou8r6c", "start": 2886, "end": 3074 },
-    { "title": "ultra soul", "videoId": "w3p63Ou8r6c", "start": 3252, "end": 3427 },
-    { "title": "secret base ～君がくれたもの～", "videoId": "w3p63Ou8r6c", "start": 3633, "end": 3916 },
-    { "title": "海の幽霊", "videoId": "w3p63Ou8r6c", "start": 4037, "end": 4266 },
-    { "title": "花火", "videoId": "w3p63Ou8r6c", "start": 4411, "end": 4664 },
-    { "title": "輝夜の城で踊りたい", "videoId": "w3p63Ou8r6c", "start": 4888, "end": 5137 },
-    { "title": "夏祭り", "videoId": "w3p63Ou8r6c", "start": 5164, "end": 5386 }
   ]
 };
 
-let playlist = [];
+// ★ システム変数 ★
+let customPlaylist = [];
+let currentPlaylist = [];
+let isPlayingCustom = false; // 今どっちのリストを再生しているか
 let current = 0;
 let player;
 let shuffle = false;
 let isApiReady = false; 
+
+// ★ セーブデータの読み込み ★
+const savedCustom = localStorage.getItem("nanaCustomPlaylist");
+if (savedCustom) {
+  customPlaylist = JSON.parse(savedCustom);
+}
 
 function onYouTubeIframeAPIReady() {
   isApiReady = true;
@@ -397,33 +299,40 @@ function onYouTubeIframeAPIReady() {
 }
 
 function initApp() {
-  // エラーメッセージを隠す
-  const loadingMsg = document.getElementById("loading-msg");
-  if(loadingMsg) loadingMsg.style.display = "none";
-
+  document.getElementById("main-panels").style.display = "flex";
+  
   const firstPlaylistName = Object.keys(myMusicData)[0];
-  playlist = myMusicData[firstPlaylistName];
+  currentPlaylist = myMusicData[firstPlaylistName];
+  isPlayingCustom = false;
+
   initSelector();
-  createList(); 
+  renderLibrary();
+  renderCustom();
   tryInitPlayer();
 }
 
 function tryInitPlayer() {
-  if (isApiReady && playlist.length > 0 && !player) {
+  if (isApiReady && !player) {
+    let startVideoId = "b-P-71jE-PI"; // 初期動画
+    let startSec = 120;
+    
+    if(customPlaylist.length > 0) {
+        startVideoId = customPlaylist[0].videoId;
+        startSec = customPlaylist[0].start;
+    } else if (currentPlaylist.length > 0) {
+        startVideoId = currentPlaylist[0].videoId;
+        startSec = currentPlaylist[0].start;
+    }
+
     player = new YT.Player('player', {
       host: 'https://www.youtube-nocookie.com',
-      width: '100%',
-      height: '100%',
-      videoId: playlist[0].videoId,
+      width: '100%', height: '100%',
+      videoId: startVideoId,
       playerVars: { 'playsinline': 1, 'rel': 0 },
       events: {
         'onReady': (event) => {
           event.target.setVolume(50);
-          player.cueVideoById({
-            videoId: playlist[0].videoId,
-            startSeconds: playlist[0].start
-          });
-          updateUI();
+          player.cueVideoById({ videoId: startVideoId, startSeconds: startSec });
         },
         'onStateChange': onPlayerStateChange
       }
@@ -431,48 +340,164 @@ function tryInitPlayer() {
   }
 }
 
+// ドロップダウンの設定
 function initSelector() {
   const sel = document.getElementById("playlistSelect");
   sel.innerHTML = ""; 
   Object.keys(myMusicData).forEach(name => {
     const opt = document.createElement("option");
-    opt.value = name;
-    opt.textContent = name;
+    opt.value = name; opt.textContent = name;
     sel.appendChild(opt);
   });
   
   sel.onchange = () => {
-    playlist = myMusicData[sel.value];
+    currentPlaylist = myMusicData[sel.value];
+    isPlayingCustom = false;
     current = 0;
-    createList();
-    if(player && player.cueVideoById){
-        player.cueVideoById({
-          videoId: playlist[0].videoId,
-          startSeconds: playlist[0].start
-        });
-        document.getElementById("icon-play").style.display = "block";
-        document.getElementById("icon-pause").style.display = "none";
-    }
+    renderLibrary();
     updateUI();
   };
 }
 
+// ★ 倉庫（左側）の描画 ★
+function renderLibrary() {
+  const list = document.getElementById("library-list");
+  list.innerHTML = "";
+  
+  let targetData = myMusicData[document.getElementById("playlistSelect").value];
+  
+  targetData.forEach((item, i) => {
+    const div = document.createElement("div");
+    div.className = "item" + (!isPlayingCustom && i === current ? " active" : "");
+    
+    const info = document.createElement("div");
+    info.className = "item-info";
+    info.onclick = () => {
+        currentPlaylist = targetData;
+        isPlayingCustom = false;
+        loadTrack(i);
+    };
+    info.innerHTML = `<span class="track-number">${String(i + 1).padStart(2, '0')}</span><span class="track-title">${item.title}</span>`;
+    
+    const addBtn = document.createElement("button");
+    addBtn.className = "action-btn";
+    addBtn.textContent = "＋";
+    addBtn.title = "マイセトリに追加";
+    addBtn.onclick = (e) => {
+        e.stopPropagation();
+        customPlaylist.push(item);
+        saveAndRenderCustom();
+    };
+
+    div.appendChild(info);
+    div.appendChild(addBtn);
+    list.appendChild(div);
+  });
+}
+
+// ★ マイセトリ（右側）の描画 ★
+function renderCustom() {
+  const list = document.getElementById("custom-list");
+  list.innerHTML = "";
+  
+  if (customPlaylist.length === 0) {
+    list.innerHTML = "<div style='opacity:0.5; font-size:14px; text-align:center; padding:20px;'>左のリストから「＋」を押して<br>曲を追加してね！</div>";
+    return;
+  }
+
+  customPlaylist.forEach((item, i) => {
+    const div = document.createElement("div");
+    div.className = "item" + (isPlayingCustom && i === current ? " active" : "");
+    
+    const info = document.createElement("div");
+    info.className = "item-info";
+    info.onclick = () => {
+        currentPlaylist = customPlaylist;
+        isPlayingCustom = true;
+        loadTrack(i);
+    };
+    info.innerHTML = `<span class="track-number">${String(i + 1).padStart(2, '0')}</span><span class="track-title">${item.title}</span>`;
+    
+    const controls = document.createElement("div");
+    controls.style.display = "flex";
+
+    // 上へボタン
+    if (i > 0) {
+        const upBtn = document.createElement("button");
+        upBtn.className = "action-btn"; upBtn.textContent = "↑";
+        upBtn.onclick = (e) => { e.stopPropagation(); moveCustom(i, -1); };
+        controls.appendChild(upBtn);
+    }
+    // 下へボタン
+    if (i < customPlaylist.length - 1) {
+        const downBtn = document.createElement("button");
+        downBtn.className = "action-btn"; downBtn.textContent = "↓";
+        downBtn.onclick = (e) => { e.stopPropagation(); moveCustom(i, 1); };
+        controls.appendChild(downBtn);
+    }
+    // 削除ボタン
+    const delBtn = document.createElement("button");
+    delBtn.className = "action-btn delete"; delBtn.textContent = "×";
+    delBtn.onclick = (e) => { e.stopPropagation(); removeCustom(i); };
+    controls.appendChild(delBtn);
+
+    div.appendChild(info);
+    div.appendChild(controls);
+    list.appendChild(div);
+  });
+}
+
+// マイセトリの操作関数
+function saveAndRenderCustom() {
+  localStorage.setItem("nanaCustomPlaylist", JSON.stringify(customPlaylist));
+  renderCustom();
+}
+
+function moveCustom(index, direction) {
+  const temp = customPlaylist[index];
+  customPlaylist[index] = customPlaylist[index + direction];
+  customPlaylist[index + direction] = temp;
+  if(isPlayingCustom) {
+      if(current === index) current += direction;
+      else if(current === index + direction) current -= direction;
+  }
+  saveAndRenderCustom();
+}
+
+function removeCustom(index) {
+  customPlaylist.splice(index, 1);
+  if(isPlayingCustom) {
+      if(current > index) current--;
+      else if(current === index) {
+          if(customPlaylist.length === 0) { player.stopVideo(); }
+          else { current = current % customPlaylist.length; loadTrack(current); }
+      }
+  }
+  saveAndRenderCustom();
+}
+
+function clearCustom() {
+  if(confirm("マイセトリをすべて消去しますか？")) {
+    customPlaylist = [];
+    if(isPlayingCustom) { player.stopVideo(); }
+    saveAndRenderCustom();
+    updateUI();
+  }
+}
+
+// プレイヤー制御
 function loadTrack(i) {
   current = i;
-  const item = playlist[i];
+  const item = currentPlaylist[i];
   if(player && player.loadVideoById){
-      player.loadVideoById({
-        videoId: item.videoId,
-        startSeconds: item.start
-      });
+      player.loadVideoById({ videoId: item.videoId, startSeconds: item.start });
   }
   updateUI();
 }
 
 function togglePlay() {
   if(!player) return;
-  const s = player.getPlayerState();
-  if (s === 1) {
+  if (player.getPlayerState() === 1) {
     player.pauseVideo();
     document.getElementById("icon-play").style.display = "block";
     document.getElementById("icon-pause").style.display = "none";
@@ -484,12 +509,14 @@ function togglePlay() {
 }
 
 function next() {
-  let nextIdx = shuffle ? Math.floor(Math.random() * playlist.length) : (current + 1) % playlist.length;
+  if(currentPlaylist.length === 0) return;
+  let nextIdx = shuffle ? Math.floor(Math.random() * currentPlaylist.length) : (current + 1) % currentPlaylist.length;
   loadTrack(nextIdx);
 }
 
 function prev() {
-  let prevIdx = (current - 1 + playlist.length) % playlist.length;
+  if(currentPlaylist.length === 0) return;
+  let prevIdx = (current - 1 + currentPlaylist.length) % currentPlaylist.length;
   loadTrack(prevIdx);
 }
 
@@ -506,11 +533,10 @@ function onPlayerStateChange(event) {
     
     clearInterval(window._timer);
     window._timer = setInterval(() => {
-      const item = playlist[current];
+      if(currentPlaylist.length === 0) return;
+      const item = currentPlaylist[current];
       const now = player.getCurrentTime();
-      if (item.end && now >= item.end) {
-        next();
-      }
+      if (item.end && now >= item.end) { next(); }
     }, 1000);
   } else {
     document.getElementById("icon-play").style.display = "block";
@@ -519,47 +545,18 @@ function onPlayerStateChange(event) {
   }
 }
 
-function createList() {
-  const list = document.getElementById("list");
-  // エラーメッセージを消さないように一旦空にする
-  list.innerHTML = "";
-  playlist.forEach((item, i) => {
-    const div = document.createElement("div");
-    div.className = "item";
-    
-    const num = document.createElement("span");
-    num.className = "track-number";
-    num.textContent = String(i + 1).padStart(2, '0');
-    
-    const title = document.createElement("span");
-    title.textContent = item.title;
-    
-    div.appendChild(num);
-    div.appendChild(title);
-    
-    div.onclick = () => loadTrack(i);
-    list.appendChild(div);
-  });
-  updateUI();
-}
-
 function updateUI() {
-  const items = document.querySelectorAll(".item");
-  items.forEach((el, i) => {
-    el.classList.toggle("active", i === current);
-  });
+  renderLibrary();
+  renderCustom();
 }
 
-document.getElementById("volume").oninput = e => {
-  if(player) player.setVolume(e.target.value);
-};
+document.getElementById("volume").oninput = e => { if(player) player.setVolume(e.target.value); };
 
 window.onload = function() {
   try {
     initApp();
   } catch (error) {
     console.error("Error:", error);
-    // エラーが起きたらメッセージを表示したままにする
   }
 };
 </script>
