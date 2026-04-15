@@ -163,7 +163,7 @@ select option { background: #1e293b; color: #fff; }
   <div class="panels-wrapper" id="main-panels" style="display:none;">
     
     <div class="panel">
-      <div class="panel-title">📚 配信アーカイブ</div>
+      <div class="panel-title"> 配信アーカイブ</div>
       <select id="playlistSelect"></select>
       <div id="library-list" class="list-container"></div>
     </div>
@@ -184,6 +184,9 @@ select option { background: #1e293b; color: #fff; }
 <script>
 // ★ 曲データ（今回追加分まで） ★
 const myMusicData = {
+  "ケセラセラ": [
+    { "title": "ケセラセラ (Mrs. GREEN APPLE)", "videoId": "bKvfuA724Cc", "start": 0, "end": 273 }
+  ]
 "少年漫画歌枠 2026/03/17": [
     { "title": "DAN DAN 心魅かれてく", "videoId": "b-P-71jE-PI", "start": 120, "end": 500 },
     { "title": "あなただけ見つめてる", "videoId": "b-P-71jE-PI", "start": 512, "end": 980 },
@@ -462,6 +465,48 @@ const myMusicData = {
     { "title": "君の知らない物語", "videoId": "Vqj4bLPt2PU", "start": 9015, "end": 9352 },
     { "title": "愛をこめて花束を", "videoId": "Vqj4bLPt2PU", "start": 9493, "end": 9772 },
     { "title": "あなたの恋人になりたい", "videoId": "Vqj4bLPt2PU", "start": 10102, "end": 10293 }
+  ],
+  "「空」を見上げたくなる歌枠 2025/06/07": [
+    { "title": "雨とカプチーノ", "videoId": "J3DZyEFdNG8", "start": 349, "end": 598 },
+    { "title": "限りなく灰色へ", "videoId": "J3DZyEFdNG8", "start": 765, "end": 1045 },
+    { "title": "RAIN", "videoId": "J3DZyEFdNG8", "start": 1218, "end": 1522 },
+    { "title": "虹", "videoId": "J3DZyEFdNG8", "start": 1733, "end": 1968 },
+    { "title": "ファンファーレ", "videoId": "J3DZyEFdNG8", "start": 2070, "end": 2251 },
+    { "title": "SUN", "videoId": "J3DZyEFdNG8", "start": 2369, "end": 2596 },
+    { "title": "ロビンソン", "videoId": "J3DZyEFdNG8", "start": 2748, "end": 2973 },
+    { "title": "Fake Face Dance Music", "videoId": "J3DZyEFdNG8", "start": 3139, "end": 3305 },
+    { "title": "ベテルギウス", "videoId": "J3DZyEFdNG8", "start": 3416, "end": 3660 },
+    { "title": "回る空うさぎ", "videoId": "J3DZyEFdNG8", "start": 3791, "end": 4028 },
+    { "title": "StarRingChild", "videoId": "J3DZyEFdNG8", "start": 4149, "end": 4447 }
+  ],
+  "20万人耐久歌枠 2025/05/24": [
+    { "title": "Rolling star", "videoId": "_xR4BUOrx7A", "start": 288, "end": 466 },
+    { "title": "明日の私にさちあれ", "videoId": "_xR4BUOrx7A", "start": 555, "end": 770 },
+    { "title": "廻廻奇譚", "videoId": "_xR4BUOrx7A", "start": 935, "end": 1129 },
+    { "title": "more than words", "videoId": "_xR4BUOrx7A", "start": 1250, "end": 1519 },
+    { "title": "イエスタデイ", "videoId": "_xR4BUOrx7A", "start": 1648, "end": 1930 },
+    { "title": "シュガーソングとビターステップ", "videoId": "_xR4BUOrx7A", "start": 2041, "end": 2264 },
+    { "title": "怪獣の花唄", "videoId": "_xR4BUOrx7A", "start": 2855, "end": 3075 },
+    { "title": "怪獣", "videoId": "_xR4BUOrx7A", "start": 3295, "end": 3547 },
+    { "title": "誰かの心臓になれたなら", "videoId": "_xR4BUOrx7A", "start": 3650, "end": 3883 },
+    { "title": "スパークル", "videoId": "_xR4BUOrx7A", "start": 4025, "end": 4413 },
+    { "title": "カタオモイ", "videoId": "_xR4BUOrx7A", "start": 4519, "end": 4725 },
+    { "title": "Sincerely", "videoId": "_xR4BUOrx7A", "start": 4888, "end": 5209 },
+    { "title": "I beg you", "videoId": "_xR4BUOrx7A", "start": 5401, "end": 5670 },
+    { "title": "Ghost of a smile", "videoId": "_xR4BUOrx7A", "start": 5808, "end": 6113 },
+    { "title": "ノーチラス", "videoId": "_xR4BUOrx7A", "start": 6405, "end": 6615 }
+  ],
+  "爽やかソング歌枠 2025/05/07": [
+    { "title": "ワタリドリ", "videoId": "JnT5mWRgh5M", "start": 458, "end": 684 },
+    { "title": "風になる", "videoId": "JnT5mWRgh5M", "start": 834, "end": 1086 },
+    { "title": "水流のロック", "videoId": "JnT5mWRgh5M", "start": 1209, "end": 1381 },
+    { "title": "地球最後の告白を", "videoId": "JnT5mWRgh5M", "start": 1533, "end": 1799 },
+    { "title": "Magic", "videoId": "JnT5mWRgh5M", "start": 1955, "end": 2202 },
+    { "title": "宿命", "videoId": "JnT5mWRgh5M", "start": 2366, "end": 2640 },
+    { "title": "グランドエスケープ", "videoId": "JnT5mWRgh5M", "start": 2810, "end": 2949 },
+    { "title": "空も飛べるはず", "videoId": "JnT5mWRgh5M", "start": 3075, "end": 3323 },
+    { "title": "運命", "videoId": "JnT5mWRgh5M", "start": 3479, "end": 3690 },
+    { "title": "サマータイムレコード", "videoId": "JnT5mWRgh5M", "start": 3877, "end": 4085 }
   ]
 };
 
